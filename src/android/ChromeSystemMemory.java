@@ -39,6 +39,51 @@ public class ChromeSystemMemory extends CordovaPlugin {
         return false;
     }
 
+
+    private String getKernel() {
+        Process process = null;  
+        String kernelVersion = "";  
+        try {  
+            process = Runtime.getRuntime().exec("cat /proc/version");  
+        } catch (IOException e) {  
+        // TODO Auto-generated catch block  
+            e.printStackTrace();  
+        }  
+          
+          
+        // get the output line  
+        InputStream outs = process.getInputStream();  
+        InputStreamReader isrout = new InputStreamReader(outs);  
+        BufferedReader brout = new BufferedReader(isrout, 8 * 1024);  
+          
+          
+        String result = "";  
+        String line;  
+        // get the whole standard output string  
+        try {  
+            while ((line = brout.readLine()) != null) {  
+            result += line;  
+        }  
+        } catch (IOException e) {  
+        // TODO Auto-generated catch block  
+            e.printStackTrace();  
+        }  
+          
+          
+        try {  
+            if (result != "") {  
+                String Keyword = "version ";  
+                int index = result.indexOf(Keyword);  
+                line = result.substring(index + Keyword.length());  
+                index = line.indexOf(" ");  
+                kernelVersion = line.substring(0, index);  
+            }  
+        } catch (IndexOutOfBoundsException e) {  
+            e.printStackTrace();  
+        }  
+        return kernelVersion;  
+    }
+
     private void getInfo(final CordovaArgs args, final CallbackContext callbackContext) {
         cordova.getThreadPool().execute(new Runnable() {
             @Override
@@ -49,6 +94,7 @@ public class ChromeSystemMemory extends CordovaPlugin {
                     activityManager.getMemoryInfo(memoryInfo);
 
                     ret.put("availableCapacity", memoryInfo.availMem);
+                    ret.put("kernel", getKernel());
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
                         ret.put("capacity", memoryInfo.totalMem);
                     }
